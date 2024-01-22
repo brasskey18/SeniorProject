@@ -1,0 +1,187 @@
+#Main Program for Hydroponic Planter 
+#Michael Barbina and Jason Moukala
+#2.1 Revision Changes:
+#Integration of humidity sensor
+#Edited 5-2-2023
+
+#Planter has 2 inputs: thermometer and humidity
+#Planter has 4 outputs: pump, lights, heater, and fan
+
+#Import Main libraries
+from pynq.overlays.base import BaseOverlay
+base = BaseOverlay("base.bit")
+from pynq.lib.arduino import arduino_io 
+from pynq.lib import PynqMicroblaze 
+from time import sleep
+#mb = PynqMicroblaze(base.iop3.mb info, "/home/xilinx/pyng/lib/arduino.bin")
+
+#Configure the output port on the PYNQ-Z2 board 
+#base.iop_arduino mb info points to the arduino header
+#0 = pin number 0
+#out' is the direction of the pin ('out' for output and 'in for input)
+pump = arduino_io.Arduino_IO(base.iop_arduino.mb_info,0,'out')
+light = arduino_io.Arduino_IO(base.iop_arduino.mb_info,2,'out')
+heat = arduino_io.Arduino_IO(base.iop_arduino.mb_info,1,'out')
+fan = arduino_io.Arduino_IO(base.iop_arduino.mb_info,3,'out')
+
+#Rawan working on ph level sensor
+phLEVEL
+
+phUP = arduino_io.Arduino_IO(base.iop_arduino.mb_info,4,'out')
+phDOWN = arduino_io.Arduino_IO(base.iop_arduino.mb_info,5,'out')
+
+
+
+#mb.reset()
+
+import math
+from pynq.lib.pmod import Grove_TMP
+from pynq.lib.pmod import PMOD_GROVE_G3 
+from pynq.lib.pmod import PMOD_GROVE_G4
+
+#from pynq.lib import Pmod _IO
+#from pynq.lib.arduino import Arduino_Analog 
+#from pynq.lib.arduino import ARDUINO_GROVE_A1 
+#from pynq.lib.arduino import ARDUINO_GROVE_A2
+#Configure the analog input ports
+#temp = Arduino_Analog(base.ARDUINO,ARDUINO_GROVE_A1)
+temp = Grove_TMP(base.PMODB,PMOD_GROVE_G4)
+humid = Grove_TMP(base.PMODB,PMOD_GROVE_G3)
+
+#humid = Arduino_Analog(base.ARDUINO,ARDUINO_GROVE_A2)
+#humid = Pmod_io(base.PMODA,2,input)
+#mb.reset()
+
+#Initialize the while loop 
+i = 1
+#Number of 5 minute cycles (288 in 24 hours)
+count = 0
+
+#Main loop, a 24-hour cycle 
+while i == 1:
+
+
+    if count % 4 == 0:
+	
+	if phLEVEL > phUPPERLIM:
+		phDOWN.write(1)
+		sleep(.5)
+		phDOWN.write(0)
+	else:
+	if phLEVEL < phLOWERLIM:
+		phUP.write(1)
+		sleep(.5)
+		phUP.write(0)
+	else:
+    else:
+
+	
+    if count < 288:
+    #Read in the temperature
+    #Temp range at 3.3 V is -250 deg C to 410 deg C 
+    #ADC is 16 bit, so 65535 possible values
+    #65535/(410-(-250) degrees) = 99.2954545 bits per degree
+    #correction = (reading/99.2954545)-250
+        tempraw = temp.read()
+        int(tempraw)
+        tempFINAL = (tempraw/99.295454545)-250
+
+    #Read in the humidity
+    #Conversion of raw data to a readable format, 16 bit data (0 to 65535)
+    #O to 100 percent humidity for values from 0 to 65535 (16 bit ADC)
+        humidraw = humid.read()
+        int(humidraw)
+        humidFINAL = (humidraw)*(100/65535)
+
+    #light timer (12 hours on, 12 hours off) 
+    if count < 144:
+        light.write(1) 
+    else:
+        light.write(0)
+
+    #pump timer (run the pump once every 4 hours for 5 minutes) 
+    if count == 0:
+       pump.write(1)
+    elif count == 48: 
+       pump.write(1)
+    elif count == 96: 
+       pump.write(1)
+    elif count == 144: 
+       pump.write(1)
+    elif count == 192: 
+       pump.write(1)
+    elif count == 240:
+       pump.write(1)
+    else:
+       pump.write(0)
+
+    #Turn on the heater to keep the temperature at least 18 Deg C (64.4 Deg F) 
+    if tempFINAL < 18:
+       heat.write(1)
+    else:
+       heat.write(0)
+
+    #Turn on the fan to let in dry air if humidity is > 70% (ideal is 50%) 
+    if humidFINAL > 70:
+       fan.write(1)
+    else:
+       fan.write(0)
+    if (count > 99):
+    #Wait for 5 minutes, increment count 
+        sleep (300)
+        count = count + 1
+
+#24 hour reset 
+    else:
+        count = 0
+       
+
+#A demonstration program for each output could be created as follows:
+#Sensor Output Demo
+#Run the first cell once before changing outputs 
+#Michael Barbina and Jason Moukala
+#Edited 5-3-2023
+
+#Planter has 2 inputs: thermometer and humidity 
+#Planter has 4 outputs: pump, lights, he+ater, and fan
+
+#Import Main libraries 
+from pynq.overlays.base import BaseOverlay
+base = BaseOverlay("base.bit")
+from pynq.lib.arduino import arduino_io 
+from pynq.lib import PynqMicroblaze
+from time import sleep
+#mb = PynqMicroblaze(base.iop3.mb_info, "/home/xilinx/pyng/lib/arduino.bin")
+
+#Configure the output port on the PYNQ-Z2 board 
+#base.iop_arduino_mb_info points to the arduino header
+#0 = pin number 0
+#'out' is the direction of the pin ('out' for output and 'in for input)
+pump = arduino_io.Arduino_IO(base.iop_arduino.mb_info,0,'out')
+light = arduino_io.Arduino_IO(base.iop_arduino.mb_info,2,'out')
+heat = arduino_io.Arduino_IO(base.iop_arduino.mb_info,1,'out')
+fan = arduino_io.Arduino_IO(base.iop_arduino.mb_inio,3,'out')
+#mb.reset()
+
+import math
+from pynq.lib.pmod import Grove_TMP 
+from pynq.lib.pmod import PMOD_GROVE_G3
+from pynq.lib.pmod import PMOD_GROVE_G4
+
+#Remaining Cells:
+
+light.write(1)
+
+light.write(0)
+
+pump.write (1)
+
+pump.write (0)
+
+fan.write (1)
+
+fan.write (0)
+
+heat.write (1)
+
+heat.write (0)
