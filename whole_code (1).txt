@@ -1,0 +1,60 @@
+from time import sleep
+from pynq.overlays.base import BaseOverlay
+from pynq.lib.arduino import Arduino_Analog
+from pynq.lib.arduino import ARDUINO_GROVE_A1
+from pynq.lib.pmod import Grove_TMP
+from pynq.lib.pmod import PMOD_GROVE_G3
+from pynq.lib.arduino import arduino_io 
+
+base = BaseOverlay("base.bit")
+
+light = arduino_io.Arduino_IO(base.iop_arduino.mb_info, 0, 'out')
+fan = arduino_io.Arduino_IO(base.iop_arduino.mb_info, 1, 'out')
+phUp = arduino_io.Arduino_IO(base.iop_arduino.mb_info, 2, 'out')
+phDown = arduino_io.Arduino_IO(base.iop_arduino.mb_info, 3, 'in')
+
+ph_sensor1 = Arduino_Analog(base.ARDUINO, ARDUINO_GROVE_A1)
+hum_sensor = Grove_TMP(base.Grove, PMOD_GROVE_G3)
+
+# pH Sensor Function:
+def ph_measure():
+    raw_analog1 = ph_sensor1.read_raw()[0]
+    voltage = (raw_analog1 / 16385) * 3.3
+    print("Voltage:", voltage)
+    current_ph = ((-5.6548) * voltage) + 15.509
+    print("Current pH value is:", current_ph)
+
+    if current_ph > 8:
+        phDown.write(1)
+        sleep(2)
+        phDown.write(0)
+        print("pH level is HIGH, adding pH down solution..")
+    elif current_ph < 6:
+        phUp.write(1)
+        sleep(2)
+        phUp.write(0)
+        print("pH level is LOW, adding pH up solution..")
+    else:
+        print("pH level is good, no action needed.")
+
+# Humidity & Temperature Sensor Function:
+def humid_measure():
+    humidity, temperature = hum_sensor.read()
+    print(f"{humidity:.1f}%, {temperature:.1f}C")
+
+# Light & Fan Control:
+def lightFan():
+    if hour < 12:
+        light.write(1)
+        fan.write(1)
+    else:
+        light.write(0)
+        fan.write(0)
+
+# Main loop
+while True:
+    for hour in range(24):
+        ph_measure()
+        humid_measure()
+        lightFan()
+        sleep(3600)

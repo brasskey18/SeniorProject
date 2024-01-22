@@ -1,0 +1,15 @@
+from time import sleep
+from pynq.overlays.base import BaseOverlay
+from pynq.lib.pmod import Grove_TMP
+from pynq.lib.pmod import PMOD_GROVE_G3
+
+base = BaseOverlay("base.bit")
+hum_sensor = Grove_TMP(base.Grove, PMOD_GROVE_G3)
+
+def humid_measure():
+    humidity, temperature = hum_sensor.read()
+    print(f"{humidity:.1f}%, {temperature:.1f}C")
+
+while True:
+    humid_measure()
+    sleep(60)
